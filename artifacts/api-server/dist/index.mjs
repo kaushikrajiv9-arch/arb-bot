@@ -35784,7 +35784,7 @@ var import_express2 = __toESM(require_express2(), 1);
 var import_express = __toESM(require_express2(), 1);
 var router = (0, import_express.Router)();
 router.get("/healthz", (_req, res) => {
-  res.json({ status: "ok" });
+  res.json({ status: "ok", build: "2026-05-12-v3" });
 });
 var health_default = router;
 
