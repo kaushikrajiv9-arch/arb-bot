@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "export NODE_ENV=development PORT=8080 && pnpm run build && pnpm run start",
-    "build": "node ./build.mjs",
+    "build": "echo 'dist committed — no rebuild needed on Render'",
     "start": "node --enable-source-maps ./dist/index.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
