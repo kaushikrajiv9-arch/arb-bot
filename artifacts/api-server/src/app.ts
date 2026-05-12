@@ -1,8 +1,11 @@
 import express, { type Express } from "express";
 import cors from "cors";
 import pinoHttp from "pino-http";
-import router from "./routes";
-import { logger } from "./lib/logger";
+import router from "./routes/index.js";
+import { logger } from "./lib/logger.js";
+import { startSimulator } from "./lib/priceSimulator.js";
+import { runStrategyCycle } from "./lib/strategies.js";
+import { getConfig } from "./lib/botConfig.js";
 
 const app: Express = express();
 
@@ -30,5 +33,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/api", router);
+
+startSimulator();
+setInterval(() => {
+  runStrategyCycle(getConfig());
+}, 3000);
 
 export default app;

@@ -3,13 +3,21 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Arb Bot API specification
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: market
+    description: Market price data
+  - name: strategies
+    description: Trading strategy signals
+  - name: trades
+    description: Trade log
+  - name: config
+    description: Bot configuration
 paths:
   /healthz:
     get:
@@ -24,6 +32,172 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /market/prices:
+    get:
+      operationId: getMarketPrices
+      tags: [market]
+      summary: Get latest prices for all pairs from all exchanges
+      responses:
+        "200":
+          description: Current prices
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  prices:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/PricePoint"
+                  updatedAt:
+                    type: string
+                    format: date-time
+                required:
+                  - prices
+                  - updatedAt
+
+  /market/orderbook:
+    get:
+      operationId: getOrderBook
+      tags: [market]
+      summary: Get simulated order book for a pair
+      parameters:
+        - name: pair
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Order book data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderBook"
+
+  /strategies/signals:
+    get:
+      operationId: getStrategySignals
+      tags: [strategies]
+      summary: Get current signals from all active strategies
+      responses:
+        "200":
+          description: Strategy signals
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  signals:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/StrategySignal"
+                  generatedAt:
+                    type: string
+                    format: date-time
+                required:
+                  - signals
+                  - generatedAt
+
+  /strategies/indicators:
+    get:
+      operationId: getIndicators
+      tags: [strategies]
+      summary: Get RSI, EMA and volatility indicators for all pairs
+      responses:
+        "200":
+          description: Technical indicators
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  indicators:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/PairIndicators"
+                required:
+                  - indicators
+
+  /trades:
+    get:
+      operationId: getTrades
+      tags: [trades]
+      summary: Get trade log
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+        - name: pair
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Trade history
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  trades:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Trade"
+                  total:
+                    type: integer
+                required:
+                  - trades
+                  - total
+
+  /trades/stats:
+    get:
+      operationId: getTradeStats
+      tags: [trades]
+      summary: Get trade statistics and PnL summary
+      responses:
+        "200":
+          description: Trade statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TradeStats"
+
+  /config:
+    get:
+      operationId: getConfig
+      tags: [config]
+      summary: Get bot configuration
+      responses:
+        "200":
+          description: Bot configuration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BotConfig"
+    put:
+      operationId: updateConfig
+      tags: [config]
+      summary: Update bot configuration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BotConfigUpdate"
+      responses:
+        "200":
+          description: Updated configuration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BotConfig"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +208,380 @@ components:
       required:
         - status
 
+    PricePoint:
+      type: object
+      properties:
+        pair:
+          type: string
+        exchange:
+          type: string
+        price:
+          type: number
+        bid:
+          type: number
+        ask:
+          type: number
+        volume24h:
+          type: number
+        change24h:
+          type: number
+        timestamp:
+          type: string
+          format: date-time
+      required:
+        - pair
+        - exchange
+        - price
+        - bid
+        - ask
+        - volume24h
+        - change24h
+        - timestamp
+
+    OrderBook:
+      type: object
+      properties:
+        pair:
+          type: string
+        bids:
+          type: array
+          items:
+            type: array
+            items:
+              type: number
+        asks:
+          type: array
+          items:
+            type: array
+            items:
+              type: number
+        timestamp:
+          type: string
+          format: date-time
+      required:
+        - pair
+        - bids
+        - asks
+        - timestamp
+
+    StrategySignal:
+      type: object
+      properties:
+        id:
+          type: string
+        strategy:
+          type: string
+          enum: [rsi, ema_crossover, scalping, arbitrage, volatility]
+        pair:
+          type: string
+        exchange:
+          type: string
+        action:
+          type: string
+          enum: [buy, sell, hold]
+        strength:
+          type: number
+          description: Signal strength 0-1
+        price:
+          type: number
+        stopLoss:
+          type: number
+        takeProfit:
+          type: number
+        reason:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        executed:
+          type: boolean
+      required:
+        - id
+        - strategy
+        - pair
+        - exchange
+        - action
+        - strength
+        - price
+        - stopLoss
+        - takeProfit
+        - reason
+        - timestamp
+        - executed
+
+    PairIndicators:
+      type: object
+      properties:
+        pair:
+          type: string
+        exchange:
+          type: string
+        rsi:
+          type: number
+        ema9:
+          type: number
+        ema21:
+          type: number
+        emaCrossover:
+          type: string
+          enum: [bullish, bearish, neutral]
+        volatility5m:
+          type: number
+          description: Price change % in last 5 minutes
+        isHighVolatility:
+          type: boolean
+        currentPrice:
+          type: number
+        priceHistory:
+          type: array
+          items:
+            type: number
+      required:
+        - pair
+        - exchange
+        - rsi
+        - ema9
+        - ema21
+        - emaCrossover
+        - volatility5m
+        - isHighVolatility
+        - currentPrice
+        - priceHistory
+
+    Trade:
+      type: object
+      properties:
+        id:
+          type: string
+        strategy:
+          type: string
+        pair:
+          type: string
+        exchange:
+          type: string
+        action:
+          type: string
+          enum: [buy, sell]
+        price:
+          type: number
+        quantity:
+          type: number
+        value:
+          type: number
+        stopLoss:
+          type: number
+        takeProfit:
+          type: number
+        exitPrice:
+          type: number
+          nullable: true
+        exitReason:
+          type: string
+          nullable: true
+          enum: [take_profit, stop_loss, signal, null]
+        pnl:
+          type: number
+          nullable: true
+        pnlPct:
+          type: number
+          nullable: true
+        status:
+          type: string
+          enum: [open, closed]
+        openedAt:
+          type: string
+          format: date-time
+        closedAt:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+        - id
+        - strategy
+        - pair
+        - exchange
+        - action
+        - price
+        - quantity
+        - value
+        - stopLoss
+        - takeProfit
+        - status
+        - openedAt
+
+    TradeStats:
+      type: object
+      properties:
+        totalTrades:
+          type: integer
+        openTrades:
+          type: integer
+        closedTrades:
+          type: integer
+        winningTrades:
+          type: integer
+        losingTrades:
+          type: integer
+        winRate:
+          type: number
+        totalPnl:
+          type: number
+        totalPnlPct:
+          type: number
+        avgPnlPct:
+          type: number
+        byStrategy:
+          type: array
+          items:
+            $ref: "#/components/schemas/StrategyStats"
+        byPair:
+          type: array
+          items:
+            $ref: "#/components/schemas/PairStats"
+      required:
+        - totalTrades
+        - openTrades
+        - closedTrades
+        - winningTrades
+        - losingTrades
+        - winRate
+        - totalPnl
+        - totalPnlPct
+        - avgPnlPct
+        - byStrategy
+        - byPair
+
+    StrategyStats:
+      type: object
+      properties:
+        strategy:
+          type: string
+        trades:
+          type: integer
+        winRate:
+          type: number
+        totalPnl:
+          type: number
+      required:
+        - strategy
+        - trades
+        - winRate
+        - totalPnl
+
+    PairStats:
+      type: object
+      properties:
+        pair:
+          type: string
+        trades:
+          type: integer
+        winRate:
+          type: number
+        totalPnl:
+          type: number
+      required:
+        - pair
+        - trades
+        - winRate
+        - totalPnl
+
+    BotConfig:
+      type: object
+      properties:
+        isRunning:
+          type: boolean
+        strategies:
+          type: object
+          properties:
+            rsi:
+              type: boolean
+            emaCrossover:
+              type: boolean
+            scalping:
+              type: boolean
+            volatility:
+              type: boolean
+          required:
+            - rsi
+            - emaCrossover
+            - scalping
+            - volatility
+        rsiOversold:
+          type: number
+        rsiOverbought:
+          type: number
+        ema9Period:
+          type: integer
+        ema21Period:
+          type: integer
+        scalpingMinPct:
+          type: number
+        scalpingMaxPct:
+          type: number
+        volatilityThreshold:
+          type: number
+        volatilityWindow:
+          type: integer
+        stopLossPct:
+          type: number
+        takeProfitPct:
+          type: number
+        tradeSize:
+          type: number
+        pairs:
+          type: array
+          items:
+            type: string
+        exchanges:
+          type: array
+          items:
+            type: string
+      required:
+        - isRunning
+        - strategies
+        - rsiOversold
+        - rsiOverbought
+        - ema9Period
+        - ema21Period
+        - scalpingMinPct
+        - scalpingMaxPct
+        - volatilityThreshold
+        - volatilityWindow
+        - stopLossPct
+        - takeProfitPct
+        - tradeSize
+        - pairs
+        - exchanges
+
+    BotConfigUpdate:
+      type: object
+      properties:
+        isRunning:
+          type: boolean
+        strategies:
+          type: object
+          properties:
+            rsi:
+              type: boolean
+            emaCrossover:
+              type: boolean
+            scalping:
+              type: boolean
+            volatility:
+              type: boolean
+        rsiOversold:
+          type: number
+        rsiOverbought:
+          type: number
+        stopLossPct:
+          type: number
+        takeProfitPct:
+          type: number
+        tradeSize:
+          type: number
+        scalpingMinPct:
+          type: number
+        scalpingMaxPct:
+          type: number
+        volatilityThreshold:
+          type: number
