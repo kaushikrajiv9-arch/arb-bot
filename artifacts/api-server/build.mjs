@@ -30,8 +30,6 @@ async function buildAll() {
     external: [
       "@workspace/api-client-react",
       "@workspace/api-spec",
-      "@workspace/api-zod",
-      "@workspace/db",
       "*.node",
       "sharp",
       "better-sqlite3",
