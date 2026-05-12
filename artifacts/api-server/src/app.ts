@@ -41,34 +41,32 @@ app.use(express.urlencoded({ extended: true }));
 
 app.get("/", (_req, res) => res.redirect("/api/"));
 
-// Debug route — shows path resolution on the running server
-app.get("/api/_debug", (_req, res) => {
-  const p1 = join(__dirname, "public");
-  const p2 = new URL("./public", import.meta.url).pathname;
-  const p3 = join(process.cwd(), "public");
-  const p4 = join(process.cwd(), "dist", "public");
-  const check = (p: string) => ({ path: p, exists: existsSync(p), files: existsSync(p) ? readdirSync(p) : [] });
-  res.json({ __dirname, cwd: process.cwd(), p1: check(p1), p2: check(p2), p3: check(p3), p4: check(p4) });
-});
+// Compute public dir at startup — check multiple candidate paths for reliability
+const _candidates = [
+  join(__dirname, "public"),                   // dist/public (normal)
+  join(process.cwd(), "dist", "public"),       // cwd-relative dist/public
+  join(process.cwd(), "public"),               // cwd-relative public
+];
+const resolvedPublic = _candidates.find(existsSync) ?? _candidates[0];
 
-// Serve static files — try two path strategies for reliability across environments
-const publicDir = join(__dirname, "public");
-const publicDirAlt = new URL("./public", import.meta.url).pathname;
-const resolvedPublic = existsSync(publicDir) ? publicDir : existsSync(publicDirAlt) ? publicDirAlt : join(process.cwd(), "dist", "public");
+// Debug route
+app.get("/api/_debug", (_req, res) => {
+  res.json({ __dirname, cwd: process.cwd(), resolvedPublic, candidates: _candidates.map(p => ({ p, exists: existsSync(p), files: existsSync(p) ? readdirSync(p) : [] })) });
+});
 
 app.use("/api", express.static(resolvedPublic));
 
-// Explicit fallback routes for HTML pages (belt-and-suspenders)
+// Explicit routes for each HTML page — belt-and-suspenders over express.static
 const serveHtml = (file: string) => (_req: Request, res: Response) => {
   const fp = join(resolvedPublic, file);
   if (existsSync(fp)) { res.sendFile(fp); } else { res.status(404).send("Not found: " + fp); }
 };
-app.get("/api/",                    serveHtml("index.html"));
-app.get("/api/index.html",          serveHtml("index.html"));
-app.get("/api/stock.html",          serveHtml("stock.html"));
-app.get("/api/alphawire",           (_req, res) => res.redirect("/api/alphawire/"));
-app.get("/api/alphawire/",          serveHtml("alphawire/index.html"));
-app.get("/api/alphawire/index.html",serveHtml("alphawire/index.html"));
+app.get("/api/",                     serveHtml("index.html"));
+app.get("/api/index.html",           serveHtml("index.html"));
+app.get("/api/stock.html",           serveHtml("stock.html"));
+app.get("/api/alphawire",            (_req, res) => res.redirect("/api/alphawire/"));
+app.get("/api/alphawire/",           serveHtml("alphawire/index.html"));
+app.get("/api/alphawire/index.html", serveHtml("alphawire/index.html"));
 
 // ── Coinbase Advanced Trade proxy ─────────────────────────────────────────────
 // Supports both:
