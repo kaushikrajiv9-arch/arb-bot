@@ -21,11 +21,15 @@ import type {
   BotConfigUpdate,
   GetIndicators200,
   GetMarketPrices200,
+  GetOptionsChainParams,
+  GetOptionsPositions200,
+  GetOptionsSignals200,
   GetOrderBookParams,
   GetStrategySignals200,
   GetTrades200,
   GetTradesParams,
   HealthStatus,
+  OptionsChain,
   OrderBook,
   TradeStats,
 } from "./api.schemas";
@@ -595,6 +599,250 @@ export function useGetTradeStats<
   request?: SecondParameter<typeof customFetch>;
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getGetTradeStatsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Get options chain for a pair
+ */
+export const getGetOptionsChainUrl = (params: GetOptionsChainParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/options/chain?${stringifiedParams}`
+    : `/api/options/chain`;
+};
+
+export const getOptionsChain = async (
+  params: GetOptionsChainParams,
+  options?: RequestInit,
+): Promise<OptionsChain> => {
+  return customFetch<OptionsChain>(getGetOptionsChainUrl(params), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetOptionsChainQueryKey = (params?: GetOptionsChainParams) => {
+  return [`/api/options/chain`, ...(params ? [params] : [])] as const;
+};
+
+export const getGetOptionsChainQueryOptions = <
+  TData = Awaited<ReturnType<typeof getOptionsChain>>,
+  TError = ErrorType<unknown>,
+>(
+  params: GetOptionsChainParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getOptionsChain>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetOptionsChainQueryKey(params);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getOptionsChain>>> = ({
+    signal,
+  }) => getOptionsChain(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getOptionsChain>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetOptionsChainQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getOptionsChain>>
+>;
+export type GetOptionsChainQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get options chain for a pair
+ */
+
+export function useGetOptionsChain<
+  TData = Awaited<ReturnType<typeof getOptionsChain>>,
+  TError = ErrorType<unknown>,
+>(
+  params: GetOptionsChainParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getOptionsChain>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetOptionsChainQueryOptions(params, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Get current options trading signals
+ */
+export const getGetOptionsSignalsUrl = () => {
+  return `/api/options/signals`;
+};
+
+export const getOptionsSignals = async (
+  options?: RequestInit,
+): Promise<GetOptionsSignals200> => {
+  return customFetch<GetOptionsSignals200>(getGetOptionsSignalsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetOptionsSignalsQueryKey = () => {
+  return [`/api/options/signals`] as const;
+};
+
+export const getGetOptionsSignalsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getOptionsSignals>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getOptionsSignals>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetOptionsSignalsQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getOptionsSignals>>
+  > = ({ signal }) => getOptionsSignals({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getOptionsSignals>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetOptionsSignalsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getOptionsSignals>>
+>;
+export type GetOptionsSignalsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get current options trading signals
+ */
+
+export function useGetOptionsSignals<
+  TData = Awaited<ReturnType<typeof getOptionsSignals>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getOptionsSignals>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetOptionsSignalsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Get open and closed options positions
+ */
+export const getGetOptionsPositionsUrl = () => {
+  return `/api/options/positions`;
+};
+
+export const getOptionsPositions = async (
+  options?: RequestInit,
+): Promise<GetOptionsPositions200> => {
+  return customFetch<GetOptionsPositions200>(getGetOptionsPositionsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetOptionsPositionsQueryKey = () => {
+  return [`/api/options/positions`] as const;
+};
+
+export const getGetOptionsPositionsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getOptionsPositions>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getOptionsPositions>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetOptionsPositionsQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getOptionsPositions>>
+  > = ({ signal }) => getOptionsPositions({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getOptionsPositions>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetOptionsPositionsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getOptionsPositions>>
+>;
+export type GetOptionsPositionsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get open and closed options positions
+ */
+
+export function useGetOptionsPositions<
+  TData = Awaited<ReturnType<typeof getOptionsPositions>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getOptionsPositions>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetOptionsPositionsQueryOptions(options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;

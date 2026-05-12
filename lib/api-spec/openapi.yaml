@@ -168,6 +168,79 @@ paths:
               schema:
                 $ref: "#/components/schemas/TradeStats"
 
+  /options/chain:
+    get:
+      operationId: getOptionsChain
+      tags: [options]
+      summary: Get options chain for a pair
+      parameters:
+        - name: pair
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: expiry
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [0dte, 1w, 2w, 1m]
+            default: 0dte
+      responses:
+        "200":
+          description: Options chain
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OptionsChain"
+
+  /options/signals:
+    get:
+      operationId: getOptionsSignals
+      tags: [options]
+      summary: Get current options trading signals
+      responses:
+        "200":
+          description: Options signals
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  signals:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/OptionsSignal"
+                  generatedAt:
+                    type: string
+                    format: date-time
+                required:
+                  - signals
+                  - generatedAt
+
+  /options/positions:
+    get:
+      operationId: getOptionsPositions
+      tags: [options]
+      summary: Get open and closed options positions
+      responses:
+        "200":
+          description: Options positions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  positions:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/OptionsPosition"
+                  stats:
+                    $ref: "#/components/schemas/OptionsStats"
+                required:
+                  - positions
+                  - stats
+
   /config:
     get:
       operationId: getConfig
@@ -484,6 +557,297 @@ components:
         - trades
         - winRate
         - totalPnl
+
+    OptionsContract:
+      type: object
+      properties:
+        id:
+          type: string
+        pair:
+          type: string
+        type:
+          type: string
+          enum: [call, put]
+        strike:
+          type: number
+        expiry:
+          type: string
+        expiryLabel:
+          type: string
+        spotPrice:
+          type: number
+        price:
+          type: number
+        bid:
+          type: number
+        ask:
+          type: number
+        iv:
+          type: number
+        delta:
+          type: number
+        gamma:
+          type: number
+        theta:
+          type: number
+        vega:
+          type: number
+        rho:
+          type: number
+        openInterest:
+          type: integer
+        volume:
+          type: integer
+        inTheMoney:
+          type: boolean
+      required:
+        - id
+        - pair
+        - type
+        - strike
+        - expiry
+        - expiryLabel
+        - spotPrice
+        - price
+        - bid
+        - ask
+        - iv
+        - delta
+        - gamma
+        - theta
+        - vega
+        - rho
+        - openInterest
+        - volume
+        - inTheMoney
+
+    OptionsChain:
+      type: object
+      properties:
+        pair:
+          type: string
+        spotPrice:
+          type: number
+        expiry:
+          type: string
+        expiryLabel:
+          type: string
+        calls:
+          type: array
+          items:
+            $ref: "#/components/schemas/OptionsContract"
+        puts:
+          type: array
+          items:
+            $ref: "#/components/schemas/OptionsContract"
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - pair
+        - spotPrice
+        - expiry
+        - expiryLabel
+        - calls
+        - puts
+        - updatedAt
+
+    OptionsSignal:
+      type: object
+      properties:
+        id:
+          type: string
+        strategy:
+          type: string
+          enum: [0dte_momentum, swing_call, swing_put, iv_crush, gamma_scalp]
+        pair:
+          type: string
+        type:
+          type: string
+          enum: [call, put]
+        action:
+          type: string
+          enum: [buy, sell]
+        strike:
+          type: number
+        expiry:
+          type: string
+        expiryLabel:
+          type: string
+        contractPrice:
+          type: number
+        spotPrice:
+          type: number
+        delta:
+          type: number
+        theta:
+          type: number
+        iv:
+          type: number
+        strength:
+          type: number
+        reason:
+          type: string
+        stopLoss:
+          type: number
+        takeProfit:
+          type: number
+        timestamp:
+          type: string
+          format: date-time
+        executed:
+          type: boolean
+      required:
+        - id
+        - strategy
+        - pair
+        - type
+        - action
+        - strike
+        - expiry
+        - expiryLabel
+        - contractPrice
+        - spotPrice
+        - delta
+        - theta
+        - iv
+        - strength
+        - reason
+        - stopLoss
+        - takeProfit
+        - timestamp
+        - executed
+
+    OptionsPosition:
+      type: object
+      properties:
+        id:
+          type: string
+        strategy:
+          type: string
+        pair:
+          type: string
+        type:
+          type: string
+          enum: [call, put]
+        action:
+          type: string
+          enum: [buy, sell]
+        strike:
+          type: number
+        expiry:
+          type: string
+        expiryLabel:
+          type: string
+        quantity:
+          type: integer
+        entryPrice:
+          type: number
+        currentPrice:
+          type: number
+        spotAtEntry:
+          type: number
+        currentSpot:
+          type: number
+        delta:
+          type: number
+        theta:
+          type: number
+        iv:
+          type: number
+        pnl:
+          type: number
+        pnlPct:
+          type: number
+        stopLoss:
+          type: number
+        takeProfit:
+          type: number
+        status:
+          type: string
+          enum: [open, closed]
+        exitPrice:
+          type: ["number", "null"]
+        exitReason:
+          type: ["string", "null"]
+          enum: [take_profit, stop_loss, expired, null]
+        openedAt:
+          type: string
+          format: date-time
+        closedAt:
+          type: ["string", "null"]
+          format: date-time
+      required:
+        - id
+        - strategy
+        - pair
+        - type
+        - action
+        - strike
+        - expiry
+        - expiryLabel
+        - quantity
+        - entryPrice
+        - currentPrice
+        - spotAtEntry
+        - currentSpot
+        - delta
+        - theta
+        - iv
+        - pnl
+        - pnlPct
+        - stopLoss
+        - takeProfit
+        - status
+        - openedAt
+
+    OptionsStrategyStats:
+      type: object
+      properties:
+        strategy:
+          type: string
+        positions:
+          type: integer
+        winRate:
+          type: number
+        totalPnl:
+          type: number
+      required:
+        - strategy
+        - positions
+        - winRate
+        - totalPnl
+
+    OptionsStats:
+      type: object
+      properties:
+        totalPositions:
+          type: integer
+        openPositions:
+          type: integer
+        closedPositions:
+          type: integer
+        winningPositions:
+          type: integer
+        winRate:
+          type: number
+        totalPnl:
+          type: number
+        avgDelta:
+          type: number
+        byStrategy:
+          type: array
+          items:
+            $ref: "#/components/schemas/OptionsStrategyStats"
+      required:
+        - totalPositions
+        - openPositions
+        - closedPositions
+        - winningPositions
+        - winRate
+        - totalPnl
+        - avgDelta
+        - byStrategy
 
     BotConfig:
       type: object

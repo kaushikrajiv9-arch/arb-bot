@@ -171,6 +171,167 @@ export const GetTradeStatsResponse = zod.object({
 });
 
 /**
+ * @summary Get options chain for a pair
+ */
+export const getOptionsChainQueryExpiryDefault = `0dte`;
+
+export const GetOptionsChainQueryParams = zod.object({
+  pair: zod.coerce.string(),
+  expiry: zod
+    .enum(["0dte", "1w", "2w", "1m"])
+    .default(getOptionsChainQueryExpiryDefault),
+});
+
+export const GetOptionsChainResponse = zod.object({
+  pair: zod.string(),
+  spotPrice: zod.number(),
+  expiry: zod.string(),
+  expiryLabel: zod.string(),
+  calls: zod.array(
+    zod.object({
+      id: zod.string(),
+      pair: zod.string(),
+      type: zod.enum(["call", "put"]),
+      strike: zod.number(),
+      expiry: zod.string(),
+      expiryLabel: zod.string(),
+      spotPrice: zod.number(),
+      price: zod.number(),
+      bid: zod.number(),
+      ask: zod.number(),
+      iv: zod.number(),
+      delta: zod.number(),
+      gamma: zod.number(),
+      theta: zod.number(),
+      vega: zod.number(),
+      rho: zod.number(),
+      openInterest: zod.number(),
+      volume: zod.number(),
+      inTheMoney: zod.boolean(),
+    }),
+  ),
+  puts: zod.array(
+    zod.object({
+      id: zod.string(),
+      pair: zod.string(),
+      type: zod.enum(["call", "put"]),
+      strike: zod.number(),
+      expiry: zod.string(),
+      expiryLabel: zod.string(),
+      spotPrice: zod.number(),
+      price: zod.number(),
+      bid: zod.number(),
+      ask: zod.number(),
+      iv: zod.number(),
+      delta: zod.number(),
+      gamma: zod.number(),
+      theta: zod.number(),
+      vega: zod.number(),
+      rho: zod.number(),
+      openInterest: zod.number(),
+      volume: zod.number(),
+      inTheMoney: zod.boolean(),
+    }),
+  ),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Get current options trading signals
+ */
+export const GetOptionsSignalsResponse = zod.object({
+  signals: zod.array(
+    zod.object({
+      id: zod.string(),
+      strategy: zod.enum([
+        "0dte_momentum",
+        "swing_call",
+        "swing_put",
+        "iv_crush",
+        "gamma_scalp",
+      ]),
+      pair: zod.string(),
+      type: zod.enum(["call", "put"]),
+      action: zod.enum(["buy", "sell"]),
+      strike: zod.number(),
+      expiry: zod.string(),
+      expiryLabel: zod.string(),
+      contractPrice: zod.number(),
+      spotPrice: zod.number(),
+      delta: zod.number(),
+      theta: zod.number(),
+      iv: zod.number(),
+      strength: zod.number(),
+      reason: zod.string(),
+      stopLoss: zod.number(),
+      takeProfit: zod.number(),
+      timestamp: zod.coerce.date(),
+      executed: zod.boolean(),
+    }),
+  ),
+  generatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Get open and closed options positions
+ */
+export const GetOptionsPositionsResponse = zod.object({
+  positions: zod.array(
+    zod.object({
+      id: zod.string(),
+      strategy: zod.string(),
+      pair: zod.string(),
+      type: zod.enum(["call", "put"]),
+      action: zod.enum(["buy", "sell"]),
+      strike: zod.number(),
+      expiry: zod.string(),
+      expiryLabel: zod.string(),
+      quantity: zod.number(),
+      entryPrice: zod.number(),
+      currentPrice: zod.number(),
+      spotAtEntry: zod.number(),
+      currentSpot: zod.number(),
+      delta: zod.number(),
+      theta: zod.number(),
+      iv: zod.number(),
+      pnl: zod.number(),
+      pnlPct: zod.number(),
+      stopLoss: zod.number(),
+      takeProfit: zod.number(),
+      status: zod.enum(["open", "closed"]),
+      exitPrice: zod.number().nullish(),
+      exitReason: zod
+        .union([
+          zod.literal("take_profit"),
+          zod.literal("stop_loss"),
+          zod.literal("expired"),
+          zod.literal(null),
+        ])
+        .nullish(),
+      openedAt: zod.coerce.date(),
+      closedAt: zod.coerce.date().nullish(),
+    }),
+  ),
+  stats: zod.object({
+    totalPositions: zod.number(),
+    openPositions: zod.number(),
+    closedPositions: zod.number(),
+    winningPositions: zod.number(),
+    winRate: zod.number(),
+    totalPnl: zod.number(),
+    avgDelta: zod.number(),
+    byStrategy: zod.array(
+      zod.object({
+        strategy: zod.string(),
+        positions: zod.number(),
+        winRate: zod.number(),
+        totalPnl: zod.number(),
+      }),
+    ),
+  }),
+});
+
+/**
  * @summary Get bot configuration
  */
 export const GetConfigResponse = zod.object({

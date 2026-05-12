@@ -158,6 +158,181 @@ export interface TradeStats {
   byPair: PairStats[];
 }
 
+export type OptionsContractType =
+  (typeof OptionsContractType)[keyof typeof OptionsContractType];
+
+export const OptionsContractType = {
+  call: "call",
+  put: "put",
+} as const;
+
+export interface OptionsContract {
+  id: string;
+  pair: string;
+  type: OptionsContractType;
+  strike: number;
+  expiry: string;
+  expiryLabel: string;
+  spotPrice: number;
+  price: number;
+  bid: number;
+  ask: number;
+  iv: number;
+  delta: number;
+  gamma: number;
+  theta: number;
+  vega: number;
+  rho: number;
+  openInterest: number;
+  volume: number;
+  inTheMoney: boolean;
+}
+
+export interface OptionsChain {
+  pair: string;
+  spotPrice: number;
+  expiry: string;
+  expiryLabel: string;
+  calls: OptionsContract[];
+  puts: OptionsContract[];
+  updatedAt: string;
+}
+
+export type OptionsSignalStrategy =
+  (typeof OptionsSignalStrategy)[keyof typeof OptionsSignalStrategy];
+
+export const OptionsSignalStrategy = {
+  "0dte_momentum": "0dte_momentum",
+  swing_call: "swing_call",
+  swing_put: "swing_put",
+  iv_crush: "iv_crush",
+  gamma_scalp: "gamma_scalp",
+} as const;
+
+export type OptionsSignalType =
+  (typeof OptionsSignalType)[keyof typeof OptionsSignalType];
+
+export const OptionsSignalType = {
+  call: "call",
+  put: "put",
+} as const;
+
+export type OptionsSignalAction =
+  (typeof OptionsSignalAction)[keyof typeof OptionsSignalAction];
+
+export const OptionsSignalAction = {
+  buy: "buy",
+  sell: "sell",
+} as const;
+
+export interface OptionsSignal {
+  id: string;
+  strategy: OptionsSignalStrategy;
+  pair: string;
+  type: OptionsSignalType;
+  action: OptionsSignalAction;
+  strike: number;
+  expiry: string;
+  expiryLabel: string;
+  contractPrice: number;
+  spotPrice: number;
+  delta: number;
+  theta: number;
+  iv: number;
+  strength: number;
+  reason: string;
+  stopLoss: number;
+  takeProfit: number;
+  timestamp: string;
+  executed: boolean;
+}
+
+export type OptionsPositionType =
+  (typeof OptionsPositionType)[keyof typeof OptionsPositionType];
+
+export const OptionsPositionType = {
+  call: "call",
+  put: "put",
+} as const;
+
+export type OptionsPositionAction =
+  (typeof OptionsPositionAction)[keyof typeof OptionsPositionAction];
+
+export const OptionsPositionAction = {
+  buy: "buy",
+  sell: "sell",
+} as const;
+
+export type OptionsPositionStatus =
+  (typeof OptionsPositionStatus)[keyof typeof OptionsPositionStatus];
+
+export const OptionsPositionStatus = {
+  open: "open",
+  closed: "closed",
+} as const;
+
+/**
+ * @nullable
+ */
+export type OptionsPositionExitReason =
+  | (typeof OptionsPositionExitReason)[keyof typeof OptionsPositionExitReason]
+  | null;
+
+export const OptionsPositionExitReason = {
+  take_profit: "take_profit",
+  stop_loss: "stop_loss",
+  expired: "expired",
+} as const;
+
+export interface OptionsPosition {
+  id: string;
+  strategy: string;
+  pair: string;
+  type: OptionsPositionType;
+  action: OptionsPositionAction;
+  strike: number;
+  expiry: string;
+  expiryLabel: string;
+  quantity: number;
+  entryPrice: number;
+  currentPrice: number;
+  spotAtEntry: number;
+  currentSpot: number;
+  delta: number;
+  theta: number;
+  iv: number;
+  pnl: number;
+  pnlPct: number;
+  stopLoss: number;
+  takeProfit: number;
+  status: OptionsPositionStatus;
+  /** @nullable */
+  exitPrice?: number | null;
+  /** @nullable */
+  exitReason?: OptionsPositionExitReason;
+  openedAt: string;
+  /** @nullable */
+  closedAt?: string | null;
+}
+
+export interface OptionsStrategyStats {
+  strategy: string;
+  positions: number;
+  winRate: number;
+  totalPnl: number;
+}
+
+export interface OptionsStats {
+  totalPositions: number;
+  openPositions: number;
+  closedPositions: number;
+  winningPositions: number;
+  winRate: number;
+  totalPnl: number;
+  avgDelta: number;
+  byStrategy: OptionsStrategyStats[];
+}
+
 export type BotConfigStrategies = {
   rsi: boolean;
   emaCrossover: boolean;
@@ -229,4 +404,29 @@ export type GetTradesParams = {
 export type GetTrades200 = {
   trades: Trade[];
   total: number;
+};
+
+export type GetOptionsChainParams = {
+  pair: string;
+  expiry?: GetOptionsChainExpiry;
+};
+
+export type GetOptionsChainExpiry =
+  (typeof GetOptionsChainExpiry)[keyof typeof GetOptionsChainExpiry];
+
+export const GetOptionsChainExpiry = {
+  "0dte": "0dte",
+  "1w": "1w",
+  "2w": "2w",
+  "1m": "1m",
+} as const;
+
+export type GetOptionsSignals200 = {
+  signals: OptionsSignal[];
+  generatedAt: string;
+};
+
+export type GetOptionsPositions200 = {
+  positions: OptionsPosition[];
+  stats: OptionsStats;
 };

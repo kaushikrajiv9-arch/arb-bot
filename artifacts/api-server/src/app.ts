@@ -5,6 +5,7 @@ import router from "./routes/index.js";
 import { logger } from "./lib/logger.js";
 import { startSimulator } from "./lib/priceSimulator.js";
 import { runStrategyCycle } from "./lib/strategies.js";
+import { runOptionsStrategyCycle } from "./lib/optionsEngine.js";
 import { getConfig } from "./lib/botConfig.js";
 
 const app: Express = express();
@@ -36,7 +37,9 @@ app.use("/api", router);
 
 startSimulator();
 setInterval(() => {
-  runStrategyCycle(getConfig());
+  const cfg = getConfig();
+  runStrategyCycle(cfg);
+  runOptionsStrategyCycle(cfg);
 }, 3000);
 
 export default app;
