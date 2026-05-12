@@ -1,0 +1,22 @@
+{
+  "name": "AlphaWire — Signal Intelligence",
+  "short_name": "AlphaWire",
+  "description": "Real-time cross-exchange arbitrage, crypto funding rates, and stock momentum signals.",
+  "start_url": "/api/alphawire/",
+  "scope": "/api/alphawire/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#080b10",
+  "theme_color": "#080b10",
+  "categories": ["finance", "utilities"],
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    { "name": "Live Signals", "url": "/api/alphawire/#signals", "description": "View live trading signals" },
+    { "name": "Arb Spreads",  "url": "/api/alphawire/#arb",     "description": "Cross-exchange arbitrage" },
+    { "name": "Funding Rates","url": "/api/alphawire/#funding",  "description": "Crypto funding rates" }
+  ]
+}
